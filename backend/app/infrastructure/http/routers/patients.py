@@ -13,6 +13,7 @@ from app.application.use_cases import (
 )
 from app.application.use_cases.register_patient import AllergyInput
 from app.domain.entities import Role
+from app.infrastructure.http.consent import require_consent
 from app.infrastructure.http.container import Container
 from app.infrastructure.http.dependencies import (
     get_container,
@@ -48,6 +49,7 @@ def register_patient(
         family_name=payload.family_name,
         birth_date=payload.birth_date,
         mrn=payload.mrn,
+        confidentiality=payload.confidentiality,
         allergies=tuple(
             AllergyInput(substance=a.substance, criticality=a.criticality)
             for a in payload.allergies
@@ -68,7 +70,10 @@ def list_patients(container: Container = Depends(get_container)) -> list[Patient
 @router.get(
     "/{patient_id}",
     response_model=PatientOut,
-    dependencies=[Depends(require_roles(Role.SURGEON, Role.ASSISTANT))],
+    dependencies=[
+        Depends(require_roles(Role.SURGEON, Role.ASSISTANT)),
+        Depends(require_consent("Patient", "read")),
+    ],
 )
 def get_patient(patient_id: UUID, container: Container = Depends(get_container)) -> PatientOut:
     patient = container.patients.get(patient_id)
@@ -81,7 +86,10 @@ def get_patient(patient_id: UUID, container: Container = Depends(get_container))
     "/{patient_id}/cases",
     response_model=SurgicalCaseOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_roles(Role.SURGEON))],
+    dependencies=[
+        Depends(require_roles(Role.SURGEON)),
+        Depends(require_consent("Patient", "write")),
+    ],
 )
 def schedule_case(
     patient_id: UUID,

@@ -13,6 +13,7 @@ from app.application.use_cases import (
     AssembleDossier,
     AuthenticateUser,
     IngestDiagnosticReport,
+    RecordConsent,
     RegisterPatient,
     ScheduleSurgicalCase,
 )
@@ -29,6 +30,10 @@ def get_authenticate_user(container: Container = Depends(get_container)) -> Auth
         hasher=container.hasher,
         tokens=container.tokens,
     )
+
+
+def get_record_consent(container: Container = Depends(get_container)) -> RecordConsent:
+    return RecordConsent(patients=container.patients, consents=container.consents)
 
 
 def get_register_patient(container: Container = Depends(get_container)) -> RegisterPatient:

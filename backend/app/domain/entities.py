@@ -50,6 +50,19 @@ class Role(StrEnum):
     ADMIN = "admin"
 
 
+class Confidentiality(StrEnum):
+    """Nível de confidencialidade (HL7 v3 Confidentiality) → Patient.meta.security."""
+
+    NORMAL = "N"
+    RESTRICTED = "R"
+    VERY_RESTRICTED = "V"
+
+
+class ConsentStatus(StrEnum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
 @dataclass
 class User:
     username: str
@@ -60,6 +73,28 @@ class User:
 
     def has_any_role(self, roles: Iterable[Role]) -> bool:
         return any(role in self.roles for role in roles)
+
+
+@dataclass
+class Consent:
+    """Consentimento LGPD de um paciente para processamento de seus dados.
+
+    `scopes` no formato `acao:Recurso` (ex.: "read:Patient", "write:Patient"), alinhado a
+    docs/security/privacy-and-security.md.
+    """
+
+    patient_id: str
+    status: ConsentStatus
+    scopes: frozenset[str]
+    expiration: datetime | None = None
+    id: UUID = field(default_factory=_new_id)
+
+    def permits(self, *, resource_type: str, action: str, now: datetime) -> bool:
+        if self.status is not ConsentStatus.ACTIVE:
+            return False
+        if self.expiration is not None and self.expiration < now:
+            return False
+        return f"{action}:{resource_type}" in self.scopes
 
 
 @dataclass
@@ -75,6 +110,7 @@ class Patient:
     family_name: str
     birth_date: date
     mrn: str  # identificador hospitalar (pseudonimizado)
+    confidentiality: Confidentiality = Confidentiality.NORMAL
     allergies: list[Allergy] = field(default_factory=list)
     id: UUID = field(default_factory=_new_id)
     created_at: datetime = field(default_factory=_now)

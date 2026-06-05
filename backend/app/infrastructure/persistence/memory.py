@@ -10,8 +10,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 from uuid import UUID
 
-from app.domain.entities import DiagnosticReport, Patient, SurgicalCase, User
+from app.domain.entities import Consent, DiagnosticReport, Patient, SurgicalCase, User
 from app.domain.ports import (
+    ConsentRepository,
     DiagnosticReportRepository,
     PatientRepository,
     SurgicalCaseRepository,
@@ -64,3 +65,14 @@ class InMemoryUserRepository(UserRepository):
 
     def get_by_username(self, username: str) -> User | None:
         return self._by_username.get(username)
+
+
+class InMemoryConsentRepository(ConsentRepository):
+    def __init__(self, consents: Iterable[Consent] = ()) -> None:
+        self._by_patient: dict[str, Consent] = {c.patient_id: c for c in consents}
+
+    def add(self, consent: Consent) -> None:
+        self._by_patient[consent.patient_id] = consent
+
+    def get_for_patient(self, patient_id: str) -> Consent | None:
+        return self._by_patient.get(patient_id)

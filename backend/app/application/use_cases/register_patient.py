@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from app.domain.entities import Allergy, Criticality, Patient
+from app.domain.entities import Allergy, Confidentiality, Criticality, Patient
 from app.domain.ports import PatientRepository
 
 
@@ -26,6 +26,7 @@ class RegisterPatient:
         family_name: str,
         birth_date: date,
         mrn: str,
+        confidentiality: Confidentiality = Confidentiality.NORMAL,
         allergies: tuple[AllergyInput, ...] = (),
     ) -> Patient:
         patient = Patient(
@@ -33,6 +34,7 @@ class RegisterPatient:
             family_name=family_name,
             birth_date=birth_date,
             mrn=mrn,
+            confidentiality=confidentiality,
         )
         for item in allergies:
             patient.add_allergy(Allergy(substance=item.substance, criticality=item.criticality))

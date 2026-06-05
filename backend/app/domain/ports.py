@@ -9,7 +9,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from app.domain.entities import DiagnosticReport, Dossier, Patient, SurgicalCase, User
+from app.domain.entities import (
+    Consent,
+    DiagnosticReport,
+    Dossier,
+    Patient,
+    SurgicalCase,
+    User,
+)
 
 
 class PatientRepository(ABC):
@@ -77,3 +84,22 @@ class TokenService(ABC):
     @abstractmethod
     def decode(self, token: str) -> dict:
         """Valida e retorna as claims. Lança AuthenticationError se inválido/expirado."""
+
+
+class ConsentRepository(ABC):
+    @abstractmethod
+    def add(self, consent: Consent) -> None: ...
+
+    @abstractmethod
+    def get_for_patient(self, patient_id: str) -> Consent | None: ...
+
+
+class ConsentValidatorPort(ABC):
+    """Valida o consentimento LGPD para uma ação sobre um recurso de um paciente.
+
+    Implementações lançam ConsentError quando o consentimento está ausente, não cobre
+    a ação/recurso ou está inativo/expirado.
+    """
+
+    @abstractmethod
+    def validate(self, *, patient_id: str, resource_type: str, action: str) -> None: ...

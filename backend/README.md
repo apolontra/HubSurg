@@ -27,6 +27,7 @@ app/
 │   ├── persistence/        # repositórios in-memory
 │   ├── fhir/               # mapeadores e gateway FHIR R4
 │   ├── security/           # PBKDF2 (senhas), JWT HS256 (tokens), seeds
+│   ├── consent/            # validador de consentimento LGPD
 │   └── http/               # FastAPI: routers, schemas, DI, container, middleware
 ├── config.py
 └── main.py                 # create_app() — composition root
@@ -50,7 +51,7 @@ Documentação interativa: `http://127.0.0.1:8000/docs`.
 ## Testes e lint
 
 ```bash
-pytest          # 31 testes: domínio, casos de uso, FHIR, segurança, API
+pytest          # 45 testes: domínio, casos de uso, FHIR, segurança, consentimento, API
 ruff check .    # lint
 ```
 
@@ -59,6 +60,10 @@ ruff check .    # lint
 - **Autenticação:** JWT (HS256) emitido em `POST /auth/token`; enviar `Authorization: Bearer <token>`.
 - **RBAC:** papéis `surgeon`, `assistant`, `admin`. Registrar/agendar exige `surgeon`;
   leitura do dossiê exige papel clínico (`surgeon`/`assistant`).
+- **Consentimento LGPD:** acesso a dados de um paciente exige consentimento por `acao:Recurso`
+  (ex.: `read:Patient`), capturado em `POST /patients/{id}/consent`. Ver
+  [ADR-0007](../docs/architecture/adr/0007-consentimento-lgpd-e-meta-security.md).
+- **Confidencialidade:** `Patient.confidentiality` (N/R/V) → `Patient.meta.security` na saída FHIR.
 - **Hashing de senha:** PBKDF2-HMAC-SHA256 (port `PasswordHasher`; trocável por bcrypt/argon2).
 - **Rate limiting** e **cabeçalhos de proteção** (CSP, HSTS, X-Frame-Options, nosniff) via middleware.
 
@@ -83,11 +88,13 @@ Apenas para uso local (ver `app/infrastructure/security/seeds.py`):
 | `GET` | `/health` | — | Liveness |
 | `POST` | `/auth/token` | — | Emitir token de acesso |
 | `POST` | `/patients` | surgeon | Registrar paciente |
-| `GET` | `/patients` · `/patients/{id}` | surgeon/assistant | Listar / obter paciente |
-| `POST` | `/patients/{id}/cases` | surgeon | Agendar caso cirúrgico |
+| `POST` | `/patients/{id}/consent` | surgeon | Capturar consentimento LGPD |
+| `GET` | `/patients` | surgeon/assistant | Listar pacientes |
+| `GET` | `/patients/{id}` | surgeon/assistant + consent `read:Patient` | Obter paciente |
+| `POST` | `/patients/{id}/cases` | surgeon + consent `write:Patient` | Agendar caso cirúrgico |
 | `POST` | `/patients/cases/{case_id}/reports` | surgeon/assistant | Ingerir laudo (saída de OCR) |
-| `GET` | `/patients/{id}/dossier` | surgeon/assistant | Dossiê agregado (modelo interno) |
-| `GET` | `/patients/{id}/dossier/fhir` | surgeon/assistant | Dossiê como **FHIR R4 Bundle** |
+| `GET` | `/patients/{id}/dossier` | surgeon/assistant + consent `read:Patient` | Dossiê agregado |
+| `GET` | `/patients/{id}/dossier/fhir` | surgeon/assistant + consent `read:Patient` | Dossiê como **FHIR R4 Bundle** |
 
 ## Exemplo rápido
 
@@ -102,6 +109,10 @@ PID=$(curl -s -X POST localhost:8000/patients -H "authorization: Bearer $TOKEN" 
   -d '{"given_name":"Ana","family_name":"Souza","birth_date":"1980-05-01","mrn":"MRN-1"}' \
   | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')
 
-# 3) exportar dossiê em FHIR
+# 3) capturar consentimento LGPD (necessário para ler/escrever dados do paciente)
+curl -s -X POST localhost:8000/patients/$PID/consent -H "authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' -d '{"scopes":["read:Patient","write:Patient"]}'
+
+# 4) exportar dossiê em FHIR
 curl -s -H "authorization: Bearer $TOKEN" localhost:8000/patients/$PID/dossier/fhir
 ```

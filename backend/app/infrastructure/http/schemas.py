@@ -14,6 +14,9 @@ from pydantic import BaseModel, Field
 from app.domain.entities import (
     Allergy,
     CaseStatus,
+    Confidentiality,
+    Consent,
+    ConsentStatus,
     Criticality,
     DiagnosticReport,
     Patient,
@@ -42,6 +45,7 @@ class PatientCreate(BaseModel):
     family_name: str = Field(min_length=1)
     birth_date: date
     mrn: str = Field(min_length=1)
+    confidentiality: Confidentiality = Confidentiality.NORMAL
     allergies: list[AllergyIn] = Field(default_factory=list)
 
 
@@ -51,6 +55,7 @@ class PatientOut(BaseModel):
     family_name: str
     birth_date: date
     mrn: str
+    confidentiality: Confidentiality
     allergies: list[AllergyOut]
 
     @classmethod
@@ -61,7 +66,32 @@ class PatientOut(BaseModel):
             family_name=patient.family_name,
             birth_date=patient.birth_date,
             mrn=patient.mrn,
+            confidentiality=patient.confidentiality,
             allergies=[AllergyOut.from_entity(a) for a in patient.allergies],
+        )
+
+
+class ConsentCreate(BaseModel):
+    scopes: list[str] = Field(min_length=1)  # ex.: ["read:Patient", "write:Patient"]
+    status: ConsentStatus = ConsentStatus.ACTIVE
+    expiration: datetime | None = None
+
+
+class ConsentOut(BaseModel):
+    id: UUID
+    patient_id: str
+    status: ConsentStatus
+    scopes: list[str]
+    expiration: datetime | None
+
+    @classmethod
+    def from_entity(cls, consent: Consent) -> ConsentOut:
+        return cls(
+            id=consent.id,
+            patient_id=consent.patient_id,
+            status=consent.status,
+            scopes=sorted(consent.scopes),
+            expiration=consent.expiration,
         )
 
 

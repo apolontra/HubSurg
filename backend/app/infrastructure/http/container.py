@@ -10,6 +10,8 @@ from dataclasses import dataclass
 
 from app.config import Settings, get_settings
 from app.domain.ports import (
+    ConsentRepository,
+    ConsentValidatorPort,
     DiagnosticReportRepository,
     FhirGateway,
     PasswordHasher,
@@ -18,8 +20,10 @@ from app.domain.ports import (
     TokenService,
     UserRepository,
 )
+from app.infrastructure.consent.validator import RepositoryConsentValidator
 from app.infrastructure.fhir.gateway import LocalFhirGateway
 from app.infrastructure.persistence.memory import (
+    InMemoryConsentRepository,
     InMemoryDiagnosticReportRepository,
     InMemoryPatientRepository,
     InMemorySurgicalCaseRepository,
@@ -39,6 +43,8 @@ class Container:
     users: UserRepository
     hasher: PasswordHasher
     tokens: TokenService
+    consents: ConsentRepository
+    consent_validator: ConsentValidatorPort
 
 
 def build_container(settings: Settings | None = None) -> Container:
@@ -48,6 +54,7 @@ def build_container(settings: Settings | None = None) -> Container:
         secret=settings.jwt_secret,
         ttl_seconds=settings.jwt_ttl_seconds,
     )
+    consents = InMemoryConsentRepository()
     return Container(
         patients=InMemoryPatientRepository(),
         cases=InMemorySurgicalCaseRepository(),
@@ -56,4 +63,6 @@ def build_container(settings: Settings | None = None) -> Container:
         users=InMemoryUserRepository(seed_users(hasher)),
         hasher=hasher,
         tokens=tokens,
+        consents=consents,
+        consent_validator=RepositoryConsentValidator(consents),
     )

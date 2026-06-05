@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.domain.errors import (
     AuthenticationError,
     AuthorizationError,
+    ConsentError,
     DomainError,
     EntityNotFound,
     InvalidState,
@@ -17,6 +18,7 @@ from app.domain.errors import (
 _STATUS_BY_ERROR: list[tuple[type[DomainError], int]] = [
     (AuthenticationError, 401),
     (AuthorizationError, 403),
+    (ConsentError, 403),
     (EntityNotFound, 404),
     (InvalidState, 409),
     (DomainError, 400),

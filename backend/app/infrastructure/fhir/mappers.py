@@ -20,6 +20,7 @@ from app.domain.entities import (
 MRN_SYSTEM = "urn:hubsurg:mrn"
 SNOMED_SYSTEM = "http://snomed.info/sct"
 LOINC_SYSTEM = "http://loinc.org"
+CONFIDENTIALITY_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-Confidentiality"
 
 # Procedure.status usa um vocabulário próprio do FHIR, distinto do nosso CaseStatus.
 _CASE_STATUS_TO_FHIR: dict[CaseStatus, str] = {
@@ -33,6 +34,12 @@ def patient_to_fhir(patient: Patient) -> dict:
     return {
         "resourceType": "Patient",
         "id": str(patient.id),
+        # Tag de confidencialidade para controle de acesso baseado em recurso (LGPD).
+        "meta": {
+            "security": [
+                {"system": CONFIDENTIALITY_SYSTEM, "code": patient.confidentiality.value}
+            ]
+        },
         "identifier": [{"system": MRN_SYSTEM, "value": patient.mrn}],
         "name": [{"family": patient.family_name, "given": [patient.given_name]}],
         "birthDate": patient.birth_date.isoformat(),

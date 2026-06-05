@@ -11,7 +11,7 @@ from app.infrastructure.http.middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.infrastructure.http.routers import auth, dossier, health, patients
+from app.infrastructure.http.routers import auth, consent, dossier, health, patients
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -41,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(patients.router)
+    app.include_router(consent.router)
     app.include_router(dossier.router)
     return app
 

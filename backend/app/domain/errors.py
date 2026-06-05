@@ -19,3 +19,7 @@ class AuthenticationError(DomainError):
 
 class AuthorizationError(DomainError):
     """Usuário autenticado, mas sem permissão para a operação."""
+
+
+class ConsentError(DomainError):
+    """Consentimento LGPD ausente, insuficiente ou expirado para o recurso/ação."""

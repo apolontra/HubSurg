@@ -31,6 +31,22 @@ def test_patient_maps_to_fhir_patient():
     assert resource["identifier"][0]["value"] == "MRN-1"
     assert resource["name"][0]["family"] == "Souza"
     assert resource["birthDate"] == "1980-05-01"
+    # Confidencialidade default (normal) emitida como tag de segurança.
+    assert resource["meta"]["security"][0]["code"] == "N"
+
+
+def test_patient_confidentiality_maps_to_meta_security():
+    from app.domain.entities import Confidentiality
+
+    patient = Patient(
+        given_name="Ana",
+        family_name="Souza",
+        birth_date=date(1980, 5, 1),
+        mrn="MRN-1",
+        confidentiality=Confidentiality.RESTRICTED,
+    )
+    resource = patient_to_fhir(patient)
+    assert resource["meta"]["security"][0]["code"] == "R"
 
 
 def test_case_status_maps_to_procedure_status():

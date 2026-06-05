@@ -81,21 +81,25 @@ flowchart TB
 
 ## Estado de implementação no backend
 
-A camada de segurança do backend (ver [ADR-0006](../architecture/adr/0006-camada-de-seguranca.md))
-implementa, com a stdlib e atrás de ports trocáveis:
+A camada de segurança do backend implementa, com a stdlib e atrás de ports trocáveis:
 
-- **Autenticação JWT (HS256)** via `POST /auth/token`.
+- **Autenticação JWT (HS256)** via `POST /auth/token` — [ADR-0006](../architecture/adr/0006-camada-de-seguranca.md).
 - **RBAC** (`surgeon`/`assistant`/`admin`) aplicado nos endpoints.
 - **Hashing de senha** com PBKDF2-HMAC-SHA256.
 - **Rate limiting** e **cabeçalhos** CSP/HSTS/X-Frame-Options/nosniff.
+- **Consentimento LGPD** por recurso/ação (`acao:Recurso`) com captura em
+  `POST /patients/{id}/consent` e barreira `require_consent` nos endpoints por paciente —
+  [ADR-0007](../architecture/adr/0007-consentimento-lgpd-e-meta-security.md).
+- **Tags de confidencialidade** (`Patient.meta.security`, HL7 v3 N/R/V) na saída FHIR.
 
-Pendentes (plano): 2FA, CSRF, criptografia em repouso (KMS), logs imutáveis/auditoria,
-IdP/diretório de usuários, e a migração para RS256 + bcrypt/argon2 em produção.
+Pendentes (plano): 2FA, CSRF, criptografia em repouso (KMS/pgcrypto), logs imutáveis/auditoria
+com hash-chain, IdP federado (OIDC/gov.br via Authlib — requer libs de cripto indisponíveis
+neste ambiente), recurso FHIR `Consent` completo, e migração para RS256 + bcrypt/argon2.
 
 ## Checklist de conformidade para o MVP
 
 - [ ] Mapa de dados pessoais e suas bases legais (RoPA / inventário LGPD).
-- [ ] Fluxo de consentimento no upload de documentos.
+- [~] Captura de consentimento por recurso/ação implementada; falta UI e recurso FHIR `Consent`.
 - [ ] Criptografia em repouso habilitada (KMS) e TLS 1.3 forçado.
 - [~] RBAC implementado e testado; **2FA** pendente.
 - [ ] Logs centralizados, imutáveis e com trilha de auditoria.
