@@ -14,7 +14,7 @@ do paciente (exames, laudos, checklists pré/pós-operatórios e planos de cuida
 | Componente | Local | Estado |
 |------------|-------|--------|
 | Backend (API FastAPI, hexagonal) | [`backend/`](backend/README.md) | Scaffold funcional, testes verdes |
-| Frontend (Next.js) | — | Planejado (ver ADR-0005) |
+| Frontend (Next.js) | [`frontend/`](frontend/README.md) | Scaffold inicial (ver ADR-0005) |
 
 ## Documentação
 
