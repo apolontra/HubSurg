@@ -13,14 +13,17 @@ from app.domain.ports import (
     ConsentRepository,
     ConsentValidatorPort,
     DiagnosticReportRepository,
+    EventBus,
     FhirGateway,
     PasswordHasher,
     PatientRepository,
+    RiskEngine,
     SurgicalCaseRepository,
     TokenService,
     UserRepository,
 )
 from app.infrastructure.consent.validator import RepositoryConsentValidator
+from app.infrastructure.events.bus import InMemoryEventBus
 from app.infrastructure.fhir.gateway import LocalFhirGateway
 from app.infrastructure.persistence.memory import (
     InMemoryConsentRepository,
@@ -29,6 +32,7 @@ from app.infrastructure.persistence.memory import (
     InMemorySurgicalCaseRepository,
     InMemoryUserRepository,
 )
+from app.infrastructure.risk.rule_based import RuleBasedRiskEngine
 from app.infrastructure.security.passwords import Pbkdf2PasswordHasher
 from app.infrastructure.security.seeds import seed_users
 from app.infrastructure.security.tokens import HmacJwtTokenService
@@ -45,6 +49,8 @@ class Container:
     tokens: TokenService
     consents: ConsentRepository
     consent_validator: ConsentValidatorPort
+    risk_engine: RiskEngine
+    events: EventBus
 
 
 def build_container(settings: Settings | None = None) -> Container:
@@ -65,4 +71,6 @@ def build_container(settings: Settings | None = None) -> Container:
         tokens=tokens,
         consents=consents,
         consent_validator=RepositoryConsentValidator(consents),
+        risk_engine=RuleBasedRiskEngine(),
+        events=InMemoryEventBus(),
     )

@@ -12,6 +12,7 @@ from fastapi import Depends, Request
 from app.application.use_cases import (
     AssembleDossier,
     AuthenticateUser,
+    GeneratePerioperativeChecklist,
     IngestDiagnosticReport,
     RecordConsent,
     RegisterPatient,
@@ -57,4 +58,15 @@ def get_assemble_dossier(container: Container = Depends(get_container)) -> Assem
         patients=container.patients,
         cases=container.cases,
         reports=container.reports,
+    )
+
+
+def get_generate_perioperative_checklist(
+    container: Container = Depends(get_container),
+) -> GeneratePerioperativeChecklist:
+    return GeneratePerioperativeChecklist(
+        patients=container.patients,
+        cases=container.cases,
+        risk_engine=container.risk_engine,
+        events=container.events,
     )

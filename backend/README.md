@@ -28,6 +28,8 @@ app/
 │   ├── fhir/               # mapeadores e gateway FHIR R4
 │   ├── security/           # PBKDF2 (senhas), JWT HS256 (tokens), seeds
 │   ├── consent/            # validador de consentimento LGPD
+│   ├── risk/               # motor de risco baseado em regras (port RiskEngine)
+│   ├── events/             # barramento de eventos in-memory (port EventBus)
 │   └── http/               # FastAPI: routers, schemas, DI, container, middleware
 ├── config.py
 └── main.py                 # create_app() — composition root
@@ -51,9 +53,18 @@ Documentação interativa: `http://127.0.0.1:8000/docs`.
 ## Testes e lint
 
 ```bash
-pytest          # 45 testes: domínio, casos de uso, FHIR, segurança, consentimento, API
+pytest          # 61 testes: domínio, casos de uso, FHIR, segurança, consentimento, risco/checklist, API
 ruff check .    # lint
 ```
+
+## Orquestração perioperatória
+
+`POST /patients/{id}/cases/{case_id}/checklist` recebe um contexto clínico pontual e devolve
+a **avaliação de risco** (4 complicações + fatores contribuintes) e um **checklist dinâmico**
+(WHO SSC + módulos por risco), além de `tasks_by_role`. O cálculo de risco é uma **linha de
+base baseada em regras** atrás do port `RiskEngine` — um modelo de ML entra como adaptador.
+O caso de uso publica eventos (`risk_assessed`, `checklist_generated`) no `EventBus`. Ver
+[ADR-0008](../docs/architecture/adr/0008-orquestracao-perioperatoria.md).
 
 ## Segurança
 
@@ -92,6 +103,7 @@ Apenas para uso local (ver `app/infrastructure/security/seeds.py`):
 | `GET` | `/patients` | surgeon/assistant | Listar pacientes |
 | `GET` | `/patients/{id}` | surgeon/assistant + consent `read:Patient` | Obter paciente |
 | `POST` | `/patients/{id}/cases` | surgeon + consent `write:Patient` | Agendar caso cirúrgico |
+| `POST` | `/patients/{id}/cases/{case_id}/checklist` | surgeon/assistant + consent `read:Patient` | Risco + checklist dinâmico |
 | `POST` | `/patients/cases/{case_id}/reports` | surgeon/assistant | Ingerir laudo (saída de OCR) |
 | `GET` | `/patients/{id}/dossier` | surgeon/assistant + consent `read:Patient` | Dossiê agregado |
 | `GET` | `/patients/{id}/dossier/fhir` | surgeon/assistant + consent `read:Patient` | Dossiê como **FHIR R4 Bundle** |

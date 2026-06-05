@@ -7,6 +7,7 @@ o domínio nunca conhece SQL, FHIR cru ou fornecedores. Ver docs/architecture/ov
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from app.domain.entities import (
@@ -17,6 +18,10 @@ from app.domain.entities import (
     SurgicalCase,
     User,
 )
+from app.domain.perioperative import RiskAssessment, RiskInputs
+
+if TYPE_CHECKING:
+    from app.domain.events import DomainEvent
 
 
 class PatientRepository(ABC):
@@ -103,3 +108,21 @@ class ConsentValidatorPort(ABC):
 
     @abstractmethod
     def validate(self, *, patient_id: str, resource_type: str, action: str) -> None: ...
+
+
+class RiskEngine(ABC):
+    """Calcula o risco perioperatório de um caso.
+
+    A implementação padrão é baseada em regras; um modelo de ML (ex.: MySurgeryRisk) pode
+    substituí-la sem afetar domínio/aplicação.
+    """
+
+    @abstractmethod
+    def assess(self, *, case_id: UUID, inputs: RiskInputs) -> RiskAssessment: ...
+
+
+class EventBus(ABC):
+    """Barramento de eventos de domínio. In-memory hoje; Kafka/EventBridge no futuro."""
+
+    @abstractmethod
+    def publish(self, event: DomainEvent) -> None: ...

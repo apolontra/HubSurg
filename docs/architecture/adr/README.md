@@ -15,6 +15,7 @@ Cada ADR é imutável; mudanças de rumo criam um novo ADR que **supersede** o a
 | [0005](0005-estrategia-renderizacao-frontend.md) | Estratégia de renderização do frontend | Aceito |
 | [0006](0006-camada-de-seguranca.md) | Camada de segurança (auth, RBAC, rate limiting) | Aceito |
 | [0007](0007-consentimento-lgpd-e-meta-security.md) | Consentimento LGPD e tags de confidencialidade FHIR | Aceito |
+| [0008](0008-orquestracao-perioperatoria.md) | Orquestração perioperatória (event-driven, risco, checklist dinâmico) | Aceito |
 
 ## Status possíveis
 
