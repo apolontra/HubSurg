@@ -11,3 +11,11 @@ class EntityNotFound(DomainError):
 
 class InvalidState(DomainError):
     """Operação viola uma invariante do domínio."""
+
+
+class AuthenticationError(DomainError):
+    """Credenciais ausentes ou inválidas."""
+
+
+class AuthorizationError(DomainError):
+    """Usuário autenticado, mas sem permissão para a operação."""

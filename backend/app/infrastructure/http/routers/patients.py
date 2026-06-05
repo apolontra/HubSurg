@@ -12,6 +12,7 @@ from app.application.use_cases import (
     ScheduleSurgicalCase,
 )
 from app.application.use_cases.register_patient import AllergyInput
+from app.domain.entities import Role
 from app.infrastructure.http.container import Container
 from app.infrastructure.http.dependencies import (
     get_container,
@@ -27,11 +28,17 @@ from app.infrastructure.http.schemas import (
     SurgicalCaseCreate,
     SurgicalCaseOut,
 )
+from app.infrastructure.http.security import require_roles
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
 
-@router.post("", response_model=PatientOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=PatientOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_roles(Role.SURGEON))],
+)
 def register_patient(
     payload: PatientCreate,
     use_case: RegisterPatient = Depends(get_register_patient),
@@ -49,12 +56,20 @@ def register_patient(
     return PatientOut.from_entity(patient)
 
 
-@router.get("", response_model=list[PatientOut])
+@router.get(
+    "",
+    response_model=list[PatientOut],
+    dependencies=[Depends(require_roles(Role.SURGEON, Role.ASSISTANT))],
+)
 def list_patients(container: Container = Depends(get_container)) -> list[PatientOut]:
     return [PatientOut.from_entity(p) for p in container.patients.list()]
 
 
-@router.get("/{patient_id}", response_model=PatientOut)
+@router.get(
+    "/{patient_id}",
+    response_model=PatientOut,
+    dependencies=[Depends(require_roles(Role.SURGEON, Role.ASSISTANT))],
+)
 def get_patient(patient_id: UUID, container: Container = Depends(get_container)) -> PatientOut:
     patient = container.patients.get(patient_id)
     if patient is None:
@@ -66,6 +81,7 @@ def get_patient(patient_id: UUID, container: Container = Depends(get_container))
     "/{patient_id}/cases",
     response_model=SurgicalCaseOut,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_roles(Role.SURGEON))],
 )
 def schedule_case(
     patient_id: UUID,
@@ -84,6 +100,7 @@ def schedule_case(
     "/cases/{case_id}/reports",
     response_model=DiagnosticReportOut,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_roles(Role.SURGEON, Role.ASSISTANT))],
 )
 def ingest_report(
     case_id: UUID,

@@ -6,6 +6,7 @@ com recursos FHIR vivem na infraestrutura — ver docs/fhir/resource-mapping.md.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from enum import StrEnum
@@ -39,6 +40,26 @@ class ReportStatus(StrEnum):
     PRELIMINARY = "preliminary"
     PARTIAL = "partial"
     FINAL = "final"
+
+
+class Role(StrEnum):
+    """Papéis do RBAC — ver docs/security/privacy-and-security.md."""
+
+    SURGEON = "surgeon"
+    ASSISTANT = "assistant"
+    ADMIN = "admin"
+
+
+@dataclass
+class User:
+    username: str
+    password_hash: str  # credencial opaca; o algoritmo é detalhe de infraestrutura
+    roles: frozenset[Role]
+    two_factor_enabled: bool = False
+    id: UUID = field(default_factory=_new_id)
+
+    def has_any_role(self, roles: Iterable[Role]) -> bool:
+        return any(role in self.roles for role in roles)
 
 
 @dataclass

@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from app.application.use_cases import AssembleDossier
+from app.domain.entities import Role
 from app.infrastructure.http.container import Container
 from app.infrastructure.http.dependencies import get_assemble_dossier, get_container
 from app.infrastructure.http.schemas import (
@@ -15,8 +16,13 @@ from app.infrastructure.http.schemas import (
     PatientOut,
     SurgicalCaseOut,
 )
+from app.infrastructure.http.security import require_roles
 
-router = APIRouter(prefix="/patients/{patient_id}/dossier", tags=["dossier"])
+router = APIRouter(
+    prefix="/patients/{patient_id}/dossier",
+    tags=["dossier"],
+    dependencies=[Depends(require_roles(Role.SURGEON, Role.ASSISTANT))],
+)
 
 
 @router.get("", response_model=DossierOut)

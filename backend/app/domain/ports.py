@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from app.domain.entities import DiagnosticReport, Dossier, Patient, SurgicalCase
+from app.domain.entities import DiagnosticReport, Dossier, Patient, SurgicalCase, User
 
 
 class PatientRepository(ABC):
@@ -51,3 +51,29 @@ class FhirGateway(ABC):
 
     @abstractmethod
     def export_dossier(self, dossier: Dossier) -> dict: ...
+
+
+class UserRepository(ABC):
+    @abstractmethod
+    def get_by_username(self, username: str) -> User | None: ...
+
+
+class PasswordHasher(ABC):
+    """Port de hashing de senha. A implementação (PBKDF2, bcrypt, argon2) é detalhe de infra."""
+
+    @abstractmethod
+    def hash(self, plain: str) -> str: ...
+
+    @abstractmethod
+    def verify(self, plain: str, hashed: str) -> bool: ...
+
+
+class TokenService(ABC):
+    """Port de emissão/validação de tokens de acesso (ex.: JWT)."""
+
+    @abstractmethod
+    def issue(self, *, subject: str, roles: list[str]) -> str: ...
+
+    @abstractmethod
+    def decode(self, token: str) -> dict:
+        """Valida e retorna as claims. Lança AuthenticationError se inválido/expirado."""

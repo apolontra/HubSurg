@@ -7,13 +7,15 @@ docs/architecture/data-model.md) é uma substituição futura que implementa os 
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from uuid import UUID
 
-from app.domain.entities import DiagnosticReport, Patient, SurgicalCase
+from app.domain.entities import DiagnosticReport, Patient, SurgicalCase, User
 from app.domain.ports import (
     DiagnosticReportRepository,
     PatientRepository,
     SurgicalCaseRepository,
+    UserRepository,
 )
 
 
@@ -54,3 +56,11 @@ class InMemoryDiagnosticReportRepository(DiagnosticReportRepository):
 
     def list_for_case(self, case_id: UUID) -> list[DiagnosticReport]:
         return [r for r in self._items.values() if r.surgical_case_id == case_id]
+
+
+class InMemoryUserRepository(UserRepository):
+    def __init__(self, users: Iterable[User] = ()) -> None:
+        self._by_username: dict[str, User] = {u.username: u for u in users}
+
+    def get_by_username(self, username: str) -> User | None:
+        return self._by_username.get(username)

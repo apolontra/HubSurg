@@ -79,12 +79,25 @@ flowchart TB
     V5 --> C5
 ```
 
+## Estado de implementação no backend
+
+A camada de segurança do backend (ver [ADR-0006](../architecture/adr/0006-camada-de-seguranca.md))
+implementa, com a stdlib e atrás de ports trocáveis:
+
+- **Autenticação JWT (HS256)** via `POST /auth/token`.
+- **RBAC** (`surgeon`/`assistant`/`admin`) aplicado nos endpoints.
+- **Hashing de senha** com PBKDF2-HMAC-SHA256.
+- **Rate limiting** e **cabeçalhos** CSP/HSTS/X-Frame-Options/nosniff.
+
+Pendentes (plano): 2FA, CSRF, criptografia em repouso (KMS), logs imutáveis/auditoria,
+IdP/diretório de usuários, e a migração para RS256 + bcrypt/argon2 em produção.
+
 ## Checklist de conformidade para o MVP
 
 - [ ] Mapa de dados pessoais e suas bases legais (RoPA / inventário LGPD).
 - [ ] Fluxo de consentimento no upload de documentos.
 - [ ] Criptografia em repouso habilitada (KMS) e TLS 1.3 forçado.
-- [ ] RBAC + 2FA implementados e testados.
+- [~] RBAC implementado e testado; **2FA** pendente.
 - [ ] Logs centralizados, imutáveis e com trilha de auditoria.
-- [ ] CSP, rate limiting e CSRF configurados.
+- [~] CSP e rate limiting configurados; **CSRF** pendente.
 - [ ] Processo de pseudonimização para dados de treino de modelos.

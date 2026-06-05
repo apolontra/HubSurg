@@ -5,9 +5,18 @@ from __future__ import annotations
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.domain.errors import DomainError, EntityNotFound, InvalidState
+from app.domain.errors import (
+    AuthenticationError,
+    AuthorizationError,
+    DomainError,
+    EntityNotFound,
+    InvalidState,
+)
 
+# Ordem importa: tipos mais específicos antes do DomainError base.
 _STATUS_BY_ERROR: list[tuple[type[DomainError], int]] = [
+    (AuthenticationError, 401),
+    (AuthorizationError, 403),
     (EntityNotFound, 404),
     (InvalidState, 409),
     (DomainError, 400),

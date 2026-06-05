@@ -11,6 +11,7 @@ from fastapi import Depends, Request
 
 from app.application.use_cases import (
     AssembleDossier,
+    AuthenticateUser,
     IngestDiagnosticReport,
     RegisterPatient,
     ScheduleSurgicalCase,
@@ -20,6 +21,14 @@ from app.infrastructure.http.container import Container
 
 def get_container(request: Request) -> Container:
     return request.app.state.container
+
+
+def get_authenticate_user(container: Container = Depends(get_container)) -> AuthenticateUser:
+    return AuthenticateUser(
+        users=container.users,
+        hasher=container.hasher,
+        tokens=container.tokens,
+    )
 
 
 def get_register_patient(container: Container = Depends(get_container)) -> RegisterPatient:
