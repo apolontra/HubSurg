@@ -50,12 +50,26 @@ uvicorn app.main:app --reload    # API em http://127.0.0.1:8000
 
 Documentação interativa: `http://127.0.0.1:8000/docs`.
 
-## Testes e lint
+## Qualidade — ritual de precheck
+
+Antes de abrir um PR, rode o ritual completo (espelha o CI). A ordem vai do mais barato/rápido
+ao mais caro e **para no primeiro erro**:
 
 ```bash
-pytest          # 61 testes: domínio, casos de uso, FHIR, segurança, consentimento, risco/checklist, API
-ruff check .    # lint
+make precheck    # typecheck (mypy) → lint (ruff) → testes (pytest)
 ```
+
+Alvos individuais também existem:
+
+```bash
+make typecheck   # mypy
+make lint        # ruff check .
+make test        # pytest -q  (61 testes)
+make run         # uvicorn app.main:app --reload
+```
+
+> As ferramentas são chamadas via `python -m` para usar o mesmo interpretador/venv. Para fixar
+> outro interpretador: `make precheck PYTHON=python`.
 
 ## Orquestração perioperatória
 

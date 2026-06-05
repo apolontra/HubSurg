@@ -9,6 +9,7 @@ modelo de ML, mas sem alegar AUROC que não temos. Implementa o port `RiskEngine
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -25,14 +26,14 @@ from app.domain.ports import RiskEngine
 class _Rule:
     weight: float
     label: str
-    applies: object  # Callable[[RiskInputs], bool]
+    applies: Callable[[RiskInputs], bool]
 
 
 def _logistic(x: float) -> float:
     return 1.0 / (1.0 + math.exp(-x))
 
 
-def _has_high_creatinine(threshold: float):
+def _has_high_creatinine(threshold: float) -> Callable[[RiskInputs], bool]:
     return lambda i: i.creatinine is not None and i.creatinine > threshold
 
 
