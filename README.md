@@ -4,9 +4,17 @@
 do paciente (exames, laudos, checklists pré/pós-operatórios e planos de cuidado) em um
 único dossiê, com **interoperabilidade by design** via **HL7 FHIR**.
 
-> Status atual: **fundação de arquitetura**. Este repositório contém, neste momento, a
-> documentação de arquitetura que orienta a construção do MVP. Ainda não há código de
-> aplicação.
+> Status atual: **MVP em construção**. Há documentação de arquitetura em [`docs/`](docs/README.md)
+> e um **scaffold funcional do backend** (FastAPI, arquitetura hexagonal) em
+> [`backend/`](backend/README.md). Persistência ainda in-memory; PostgreSQL é uma substituição
+> localizada (ver ADR-0003).
+
+## Código
+
+| Componente | Local | Estado |
+|------------|-------|--------|
+| Backend (API FastAPI, hexagonal) | [`backend/`](backend/README.md) | Scaffold funcional, testes verdes |
+| Frontend (Next.js) | — | Planejado (ver ADR-0005) |
 
 ## Documentação
 
