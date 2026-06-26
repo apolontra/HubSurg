@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
 
+    # Motor de codificação TUSS (COFRE). Sem a chave, o endpoint responde 503.
+    anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-opus-4-8"
+
 
 @lru_cache
 def get_settings() -> Settings:

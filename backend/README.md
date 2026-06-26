@@ -30,6 +30,7 @@ app/
 │   ├── consent/            # validador de consentimento LGPD
 │   ├── risk/               # motor de risco baseado em regras (port RiskEngine)
 │   ├── events/             # barramento de eventos in-memory (port EventBus)
+│   ├── llm/                # adaptador Claude + cliente indisponível (port LlmClient)
 │   └── http/               # FastAPI: routers, schemas, DI, container, middleware
 ├── config.py
 └── main.py                 # create_app() — composition root
@@ -64,7 +65,7 @@ Alvos individuais também existem:
 ```bash
 make typecheck   # mypy
 make lint        # ruff check .
-make test        # pytest -q  (61 testes)
+make test        # pytest -q  (75 testes)
 make run         # uvicorn app.main:app --reload
 ```
 
@@ -79,6 +80,17 @@ a **avaliação de risco** (4 complicações + fatores contribuintes) e um **che
 base baseada em regras** atrás do port `RiskEngine` — um modelo de ML entra como adaptador.
 O caso de uso publica eventos (`risk_assessed`, `checklist_generated`) no `EventBus`. Ver
 [ADR-0008](../docs/architecture/adr/0008-orquestracao-perioperatoria.md).
+
+## Codificação TUSS (COFRE)
+
+`POST /coding/tuss` recebe um relato operatório (+ template opcional) e devolve o **menor
+conjunto de códigos TUSS defensável**, com o trecho literal que sustenta cada um. O motor é
+um LLM (Claude) atrás do port `LlmClient`; a saída passa por um **validador de contrato
+determinístico** antes de ser servida — se o modelo inventar uma sustentação que não é trecho
+literal do relato, a resposta é **rejeitada (422)**, nunca servida. Sem
+`HUBSURG_ANTHROPIC_API_KEY` configurada, o endpoint responde **503**. O pacote `anthropic` é
+uma dependência opcional (`pip install -e ".[llm]"`). Ver
+[ADR-0009](../docs/architecture/adr/0009-cofre-codificacao-tuss.md).
 
 ## Segurança
 
@@ -119,6 +131,7 @@ Apenas para uso local (ver `app/infrastructure/security/seeds.py`):
 | `POST` | `/patients/{id}/cases` | surgeon + consent `write:Patient` | Agendar caso cirúrgico |
 | `POST` | `/patients/{id}/cases/{case_id}/checklist` | surgeon/assistant + consent `read:Patient` | Risco + checklist dinâmico |
 | `POST` | `/patients/cases/{case_id}/reports` | surgeon/assistant | Ingerir laudo (saída de OCR) |
+| `POST` | `/coding/tuss` | surgeon/assistant | Codificar relato em TUSS (COFRE) |
 | `GET` | `/patients/{id}/dossier` | surgeon/assistant + consent `read:Patient` | Dossiê agregado |
 | `GET` | `/patients/{id}/dossier/fhir` | surgeon/assistant + consent `read:Patient` | Dossiê como **FHIR R4 Bundle** |
 

@@ -2,6 +2,7 @@
 
 from app.application.use_cases.assemble_dossier import AssembleDossier
 from app.application.use_cases.authenticate_user import AuthenticateUser
+from app.application.use_cases.code_operative_report import CodeOperativeReport
 from app.application.use_cases.generate_perioperative_checklist import (
     ClinicalContext,
     GeneratePerioperativeChecklist,
@@ -16,6 +17,7 @@ __all__ = [
     "AssembleDossier",
     "AuthenticateUser",
     "ClinicalContext",
+    "CodeOperativeReport",
     "GeneratePerioperativeChecklist",
     "IngestDiagnosticReport",
     "RecordConsent",

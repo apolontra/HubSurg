@@ -23,3 +23,11 @@ class AuthorizationError(DomainError):
 
 class ConsentError(DomainError):
     """Consentimento LGPD ausente, insuficiente ou expirado para o recurso/ação."""
+
+
+class CodingContractError(DomainError):
+    """Saída do motor de codificação viola o contrato (JSON inválido ou sustentação inventada)."""
+
+
+class LlmUnavailable(DomainError):
+    """Motor de LLM não configurado ou indisponível."""

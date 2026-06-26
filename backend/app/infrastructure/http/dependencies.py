@@ -12,6 +12,7 @@ from fastapi import Depends, Request
 from app.application.use_cases import (
     AssembleDossier,
     AuthenticateUser,
+    CodeOperativeReport,
     GeneratePerioperativeChecklist,
     IngestDiagnosticReport,
     RecordConsent,
@@ -70,3 +71,9 @@ def get_generate_perioperative_checklist(
         risk_engine=container.risk_engine,
         events=container.events,
     )
+
+
+def get_code_operative_report(
+    container: Container = Depends(get_container),
+) -> CodeOperativeReport:
+    return CodeOperativeReport(llm=container.llm)

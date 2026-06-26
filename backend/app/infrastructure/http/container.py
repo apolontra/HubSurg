@@ -15,6 +15,7 @@ from app.domain.ports import (
     DiagnosticReportRepository,
     EventBus,
     FhirGateway,
+    LlmClient,
     PasswordHasher,
     PatientRepository,
     RiskEngine,
@@ -25,6 +26,7 @@ from app.domain.ports import (
 from app.infrastructure.consent.validator import RepositoryConsentValidator
 from app.infrastructure.events.bus import InMemoryEventBus
 from app.infrastructure.fhir.gateway import LocalFhirGateway
+from app.infrastructure.llm.anthropic_client import AnthropicLlmClient, UnavailableLlmClient
 from app.infrastructure.persistence.memory import (
     InMemoryConsentRepository,
     InMemoryDiagnosticReportRepository,
@@ -51,6 +53,16 @@ class Container:
     consent_validator: ConsentValidatorPort
     risk_engine: RiskEngine
     events: EventBus
+    llm: LlmClient
+
+
+def _build_llm_client(settings: Settings) -> LlmClient:
+    if settings.anthropic_api_key:
+        return AnthropicLlmClient(
+            api_key=settings.anthropic_api_key,
+            model=settings.anthropic_model,
+        )
+    return UnavailableLlmClient()
 
 
 def build_container(settings: Settings | None = None) -> Container:
@@ -73,4 +85,5 @@ def build_container(settings: Settings | None = None) -> Container:
         consent_validator=RepositoryConsentValidator(consents),
         risk_engine=RuleBasedRiskEngine(),
         events=InMemoryEventBus(),
+        llm=_build_llm_client(settings),
     )

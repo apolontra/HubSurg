@@ -13,6 +13,7 @@ from app.infrastructure.http.middleware import (
 )
 from app.infrastructure.http.routers import (
     auth,
+    coding,
     consent,
     dossier,
     health,
@@ -51,6 +52,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(consent.router)
     app.include_router(perioperative.router)
     app.include_router(dossier.router)
+    app.include_router(coding.router)
     return app
 
 

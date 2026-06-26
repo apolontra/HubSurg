@@ -8,10 +8,12 @@ from fastapi.responses import JSONResponse
 from app.domain.errors import (
     AuthenticationError,
     AuthorizationError,
+    CodingContractError,
     ConsentError,
     DomainError,
     EntityNotFound,
     InvalidState,
+    LlmUnavailable,
 )
 
 # Ordem importa: tipos mais específicos antes do DomainError base.
@@ -21,6 +23,8 @@ _STATUS_BY_ERROR: list[tuple[type[DomainError], int]] = [
     (ConsentError, 403),
     (EntityNotFound, 404),
     (InvalidState, 409),
+    (CodingContractError, 422),
+    (LlmUnavailable, 503),
     (DomainError, 400),
 ]
 

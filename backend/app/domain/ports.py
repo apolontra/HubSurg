@@ -126,3 +126,14 @@ class EventBus(ABC):
 
     @abstractmethod
     def publish(self, event: DomainEvent) -> None: ...
+
+
+class LlmClient(ABC):
+    """Port para um modelo de linguagem. Recebe SYSTEM (estável) + MENSAGEM (por caso).
+
+    A implementação concreta (Anthropic Claude, etc.) é detalhe de infraestrutura; deve
+    retornar SOMENTE o texto da resposta do modelo.
+    """
+
+    @abstractmethod
+    def complete(self, *, system: str, message: str) -> str: ...
